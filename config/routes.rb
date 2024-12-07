@@ -1,27 +1,35 @@
 Rails.application.routes.draw do
-  # Devise authentication routes for User model
-  devise_for :users
-
-  # Set the root of the application
-  # Adjust this if your root should be something else
+  # Root route
   root "photos#index"
-
-  # Users
-  # Public index of all users
-  get "/users", to: "users#index", as: :users
-
-  # Public profile of a user by username
+  
+  # Devise routes
+  devise_for :users, path: 'users', path_names: {
+    sign_in: 'sign_in',
+    sign_out: 'sign_out',
+    registration: '',
+    sign_up: 'sign_up'
+  }
+  
+  # Custom user routes
+  get "/users", to: "users#index", as: :all_users  # Changed from :users to :all_users
   get "/users/:username", to: "users#show", as: :user_profile
-
-  # Photos resource routes
+  
+  # Photos resource and custom routes
   resources :photos, except: [:new, :edit]
-
-  # Comments resource routes
+  post "/insert_photo", to: "photos#create"
+  
+  # Comments resource and custom routes
   resources :comments, except: [:new, :edit]
-
-  # Likes resource routes
+  post "/insert_comment", to: "comments#create"
+  get "/delete_comment/:id", to: "comments#destroy"
+  
+  # Likes resource and custom routes
   resources :likes, except: [:new, :edit]
-
-  # Follow requests resource routes
+  post "/create_like", to: "likes#create"
+  get "/delete_like/:id", to: "likes#destroy"
+  
+  # Follow requests resource and custom routes
   resources :follow_requests, except: [:new, :edit]
+  post "/insert_follow_request", to: "follow_requests#create"
+  delete "/delete_follow_request/:id", to: "follow_requests#destroy"
 end

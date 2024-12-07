@@ -1,131 +1,62 @@
-<div>
-  <div>
-    <h1>
-      Photo #<%= @the_photo.id %> details
-    </h1>
+<%# app/views/photos/show.html.erb %>
+<table border="1">
+  <tr>
+    <th>Image</th>
+    <td><img src="<%= @the_photo.image %>" class="img-responsive"></td>
+  </tr>
 
-    <div>
-      <div>
-        <a href="/photos">
-          Go back
-        </a>
-      </div>
+  <tr>
+    <th>Caption</th>
+    <td><%= @the_photo.caption %></td>
+  </tr>
 
-      <div>
-        <a href="/delete_photo/<%= @the_photo.id %>">
-          Delete photo
-        </a>
-      </div>
-    </div>
+  <tr>
+    <th>Owner</th>
+    <td><a href="/users/<%= @the_photo.owner.username %>"><%= @the_photo.owner.username %></a></td>
+  </tr>
 
-    <dl>
-      <dt>
-        Caption
-      </dt>
-      <dd>
-        <%= @the_photo.caption %>
-      </dd>
+  <tr>
+    <th>Posted</th>
+    <td><%= time_ago_in_words(@the_photo.created_at) %> ago</td>
+  </tr>
 
-      <dt>
-        Image
-      </dt>
-      <dd>
-        <%= @the_photo.image %>
-      </dd>
+  <tr>
+    <th>Likes</th>
+    <td>
+      <%= @the_photo.likes_count %>
+      <% if user_signed_in? %>
+        <% existing_like = current_user.likes.find_by(photo: @the_photo) %>
+        <% if existing_like %>
+          <a href="/delete_like/<%= existing_like.id %>">Unlike</a>
+        <% else %>
+          <form action="/create_like" method="post" style="display: inline;">
+            <input type="hidden" name="query_fan_id" value="<%= current_user.id %>">
+            <input type="hidden" name="query_photo_id" value="<%= @the_photo.id %>">
+            <button>Like</button>
+          </form>
+        <% end %>
+      <% end %>
+    </td>
+  </tr>
+</table>
 
-      <dt>
-        Likes count
-      </dt>
-      <dd>
-        <%= @the_photo.likes_count %>
-      </dd>
+<h2>Comments</h2>
+<% if user_signed_in? %>
+  <form action="/insert_comment" method="post">
+    <input type="hidden" name="query_photo_id" value="<%= @the_photo.id %>">
+    <input type="hidden" name="query_author_id" value="<%= current_user.id %>">
+    <textarea name="query_body" placeholder="Add a comment..."></textarea>
+    <button>Add comment</button>
+  </form>
+<% end %>
 
-      <dt>
-        Comments count
-      </dt>
-      <dd>
-        <%= @the_photo.comments_count %>
-      </dd>
-
-      <dt>
-        Owner
-      </dt>
-      <dd>
-        <%= @the_photo.owner_id %>
-      </dd>
-
-      <dt>
-        Created at
-      </dt>
-      <dd>
-        <%= time_ago_in_words(@the_photo.created_at) %> ago
-      </dd>
-
-      <dt>
-        Updated at
-      </dt>
-      <dd>
-        <%= time_ago_in_words(@the_photo.updated_at) %> ago
-      </dd>
-    </dl>
-  </div>
-</div>
-
-<hr>
-
-
-<div>
-  <div>
-    <h2>
-      Edit photo
-    </h2>
-
-    <form action="/modify_photo/<%= @the_photo.id %>"  method="post" >
-      <div>
-        <label for="caption_box">
-          Caption
-        </label>
-
-        <textarea id="caption_box" name="query_caption"><%= @the_photo.caption %></textarea>
-      </div>
-
-      <div>
-        <label for="image_box">
-          Image
-        </label>
-
-        <input type="text" id="image_box" name="query_image" value="<%= @the_photo.image %>">
-      </div>
-
-      <div>
-        <label for="likes_count_box">
-          Likes count
-        </label>
-
-        <input type="text" id="likes_count_box" name="query_likes_count" value="<%= @the_photo.likes_count %>">
-      </div>
-
-      <div>
-        <label for="comments_count_box">
-          Comments count
-        </label>
-
-        <input type="text" id="comments_count_box" name="query_comments_count" value="<%= @the_photo.comments_count %>">
-      </div>
-
-      <div>
-        <label for="owner_id_box">
-          Owner
-        </label>
-
-        <input type="text" id="owner_id_box" name="query_owner_id" value="<%= @the_photo.owner_id %>">
-      </div>
-
-      <button>
-        Update photo
-      </button>
-    </form>
-  </div>
-</div>
-
-<hr>
+<% @the_photo.comments.order(created_at: :desc).each do |comment| %>
+  <p>
+    <strong><a href="/users/<%= comment.author.username %>"><%= comment.author.username %></a></strong>
+    <%= comment.body %>
+    <small><%= time_ago_in_words(comment.created_at) %> ago</small>
+    <% if user_signed_in? && comment.author_id == current_user.id %>
+      <a href="/delete_comment/<%= comment.id %>">Delete</a>
+    <% end %>
+  </p>
+<% end %>

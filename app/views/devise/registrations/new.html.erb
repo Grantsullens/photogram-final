@@ -1,0 +1,38 @@
+<%# app/views/devise/registrations/new.html.erb %>
+
+<h2>Sign up</h2>
+
+<form class="new_user" id="new_user" action="/users" method="post">
+  <div class="field">
+    <label for="user_email">Email</label><br />
+    <input autofocus="autofocus" autocomplete="email" type="email" name="user[email]" id="user_email" />
+  </div>
+
+  <div class="field">
+    <label for="user_password">Password</label>
+    <em>(6 characters minimum)</em><br />
+    <input autocomplete="new-password" type="password" name="user[password]" id="user_password" />
+  </div>
+
+  <div class="field">
+    <label for="user_password_confirmation">Password confirmation</label><br />
+    <input autocomplete="new-password" type="password" name="user[password_confirmation]" id="user_password_confirmation" />
+  </div>
+
+  <div class="field">
+    <label for="user_username">Username</label><br />
+    <input type="text" name="user[username]" id="user_username" />
+  </div>
+
+  <div class="field">
+    <label for="user_private">Private</label><br />
+    <input type="hidden" name="user[private]" value="0" />
+    <input type="checkbox" value="1" name="user[private]" id="user_private" />
+  </div>
+
+  <div class="actions">
+    <input type="submit" name="commit" value="Sign up" data-disable-with="Sign up" />
+  </div>
+</form>
+
+<a href="/users/sign_in">Log in</a><br />

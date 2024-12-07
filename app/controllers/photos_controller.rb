@@ -1,62 +1,60 @@
 class PhotosController < ApplicationController
+  before_action :authenticate_user!, except: [:index, :show]
+
   def index
     matching_photos = Photo.all
 
-    @list_of_photos = matching_photos.order({ :created_at => :desc })
+    # Filter out private photos unless the user is following the owner
+    @list_of_photos = matching_photos.select do |photo|
+      !photo.owner.private || 
+      (current_user && (current_user == photo.owner || current_user.following.include?(photo.owner)))
+    end
+
+    @list_of_photos = @list_of_photos.sort_by(&:created_at).reverse
 
     render({ :template => "photos/index" })
   end
 
   def show
     the_id = params.fetch("path_id")
-
-    matching_photos = Photo.where({ :id => the_id })
-
-    @the_photo = matching_photos.at(0)
-
-    render({ :template => "photos/show" })
-  end
-
-  def create
-    the_photo = Photo.new
-    the_photo.caption = params.fetch("query_caption")
-    the_photo.image = params.fetch("query_image")
-    the_photo.likes_count = params.fetch("query_likes_count")
-    the_photo.comments_count = params.fetch("query_comments_count")
-    the_photo.owner_id = params.fetch("query_owner_id")
-
-    if the_photo.valid?
-      the_photo.save
-      redirect_to("/photos", { :notice => "Photo created successfully." })
+    @the_photo = Photo.find(the_id)
+    
+    # Check if user can view this photo
+    if @the_photo.owner.private && 
+       (!current_user || (current_user != @the_photo.owner && !current_user.following.include?(@the_photo.owner)))
+      redirect_to photos_path, alert: "You don't have permission to view this photo."
     else
-      redirect_to("/photos", { :alert => the_photo.errors.full_messages.to_sentence })
+      render({ :template => "photos/show" })
     end
   end
 
-  def update
-    the_id = params.fetch("path_id")
-    the_photo = Photo.where({ :id => the_id }).at(0)
+  def create
+    return redirect_to photos_path, alert: "You must be signed in to post photos." unless current_user
 
+    the_photo = Photo.new
     the_photo.caption = params.fetch("query_caption")
     the_photo.image = params.fetch("query_image")
-    the_photo.likes_count = params.fetch("query_likes_count")
-    the_photo.comments_count = params.fetch("query_comments_count")
-    the_photo.owner_id = params.fetch("query_owner_id")
+    the_photo.owner_id = current_user.id
+    the_photo.likes_count = 0
+    the_photo.comments_count = 0
 
     if the_photo.valid?
       the_photo.save
-      redirect_to("/photos/#{the_photo.id}", { :notice => "Photo updated successfully."} )
+      redirect_to photos_path, notice: "Photo created successfully."
     else
-      redirect_to("/photos/#{the_photo.id}", { :alert => the_photo.errors.full_messages.to_sentence })
+      redirect_to photos_path, alert: the_photo.errors.full_messages.to_sentence
     end
   end
 
   def destroy
     the_id = params.fetch("path_id")
-    the_photo = Photo.where({ :id => the_id }).at(0)
+    the_photo = Photo.find(the_id)
 
-    the_photo.destroy
-
-    redirect_to("/photos", { :notice => "Photo deleted successfully."} )
+    if current_user != the_photo.owner
+      redirect_to photos_path, alert: "You can only delete your own photos."
+    else
+      the_photo.destroy
+      redirect_to photos_path, notice: "Photo deleted successfully."
+    end
   end
 end

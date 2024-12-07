@@ -1,11 +1,51 @@
+<%# app/views/layouts/application.html.erb %>
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Photogram Final</title>
+    <title>Target: Photogram Final</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "application" %>
   </head>
 
   <body>
+    <ul>
+      <li>
+        <%= link_to "All users", all_users_path %>
+      </li>
+
+      <li>
+        <%= link_to "All public photos", photos_path %>
+      </li>
+
+      <% if user_signed_in? %>
+        <li>
+          <%= link_to current_user.username, edit_user_registration_path %>
+        </li>
+
+        <li>
+          <%= link_to "Sign out", destroy_user_session_path, method: :delete %>
+        </li>
+      <% else %>
+        <li>
+          <%= link_to "Sign in", new_user_session_path %>
+        </li>
+
+        <li>
+          <%= link_to "Sign up", new_user_registration_path %>
+        </li>
+      <% end %>
+    </ul>
+
+    <% if notice.present? %>
+      <div><%= notice %></div>
+    <% end %>
+
+    <% if alert.present? %>
+      <div><%= alert %></div>
+    <% end %>
+
     <%= yield %>
   </body>
 </html>

@@ -1,0 +1,28 @@
+<%# app/views/devise/sessions/new.html.erb %>
+
+<h2>Log in</h2>
+
+<form class="new_user" id="new_user" action="/users/sign_in" method="post">
+  <div class="field">
+    <label for="user_email">Email</label><br />
+    <input autofocus="autofocus" autocomplete="email" type="email" name="user[email]" id="user_email" />
+  </div>
+
+  <div class="field">
+    <label for="user_password">Password</label><br />
+    <input autocomplete="current-password" type="password" name="user[password]" id="user_password" />
+  </div>
+
+  <div class="field">
+    <input type="hidden" name="user[remember_me]" value="0" />
+    <input type="checkbox" value="1" name="user[remember_me]" id="user_remember_me" />
+    <label for="user_remember_me">Remember me</label>
+  </div>
+
+  <div class="actions">
+    <input type="submit" name="commit" value="Log in" data-disable-with="Log in" />
+  </div>
+</form>
+
+<a href="/users/sign_up">Sign up</a><br />
+<a href="/users/password/new">Forgot your password?</a><br />
