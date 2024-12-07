@@ -1,0 +1,39 @@
+<%# app/views/users/feed.html.erb %>
+<h1><%= @user.username %>'s Feed</h1>
+
+<% if @feed_photos.any? %>
+  <% @feed_photos.each do |photo| %>
+    <div class="photo">
+      <img src="<%= photo.image %>" class="img-responsive">
+      
+      <p><%= photo.caption %></p>
+      
+      <p>
+        Posted by <%= link_to photo.owner.username, user_profile_path(username: photo.owner.username) %>
+        <%= time_ago_in_words(photo.created_at) %> ago
+      </p>
+      
+      <p>
+        <%= pluralize(photo.likes_count, "like") %>
+        <% if user_signed_in? %>
+          <% existing_like = current_user.likes.find_by(photo: photo) %>
+          <% if existing_like %>
+            · <%= link_to "Unlike", "/delete_like/#{existing_like.id}", method: :delete %>
+          <% else %>
+            · <%= form_with(url: "/create_like", method: :post, local: true, style: "display: inline;") do |f| %>
+                <%= f.hidden_field :query_photo_id, value: photo.id %>
+                <%= f.hidden_field :query_fan_id, value: current_user.id %>
+                <%= f.submit "Like" %>
+              <% end %>
+          <% end %>
+        <% end %>
+        · <%= pluralize(photo.comments_count, "comment") %>
+        · <%= link_to "Show details", photo_path(photo) %>
+      </p>
+    </div>
+
+    <hr>
+  <% end %>
+<% else %>
+  <p>No photos from people you follow yet.</p>
+<% end %>

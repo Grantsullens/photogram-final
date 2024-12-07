@@ -1,59 +1,51 @@
 <%# app/views/users/show.html.erb %>
-
 <h1><%= @user.username %>'s Profile</h1>
 
 <dl>
   <dt>Private Account</dt>
   <dd><%= @user.private? ? "Yes" : "No" %></dd>
 
-  <% if user_signed_in? && current_user != @user %>
-    <dt>Follow Status</dt>
-    <dd>
-      <% existing_request = current_user.sent_follow_requests.find_by(recipient: @user) %>
-      
-      <% if existing_request %>
-        <% if existing_request.status == "pending" %>
-          Request sent.
-          <%= link_to "Cancel", follow_request_path(existing_request), method: :delete %>
-        <% else %>
-          <%= link_to "Unfollow", follow_request_path(existing_request), method: :delete %>
+  <dt>Photos count</dt>
+  <dd><%= @photos.count %></dd>
+
+  <% if @user == current_user %>
+    <h2>Pending Follow Requests</h2>
+    <% if @pending_followers.any? %>
+      <ul>
+        <% @pending_followers.each do |follower| %>
+          <li><%= follower.username %></li>
         <% end %>
-      <% else %>
-        <%= form_with(url: follow_requests_path, local: true, method: :post) do |f| %>
-          <%= f.hidden_field :query_recipient_id, value: @user.id %>
-          <%= f.hidden_field :query_sender_id, value: current_user.id %>
-          <%= f.hidden_field :query_status, value: @user.private? ? "pending" : "accepted" %>
-          <%= f.submit "Follow" %>
-        <% end %>
-      <% end %>
-    </dd>
+      </ul>
+    <% else %>
+      <p>No pending requests</p>
+    <% end %>
   <% end %>
 
-  <dt>Photos count</dt>
-  <dd><%= @user.photos.count %></dd>
-
-  <dt>Followers</dt>
-  <dd><%= @user.followers.count %></dd>
-
-  <dt>Following</dt>
-  <dd><%= @user.following.count %></dd>
+  <% if user_signed_in? && current_user != @user %>
+    <%= form_with(url: "/insert_follow_request", method: :post, local: true) do |f| %>
+      <%= f.hidden_field :query_recipient_id, value: @user.id %>
+      <%= f.hidden_field :query_sender_id, value: current_user.id %>
+      <%= f.hidden_field :query_status, value: @user.private? ? "pending" : "accepted" %>
+      <button>Follow</button>
+    <% end %>
+  <% end %>
 </dl>
 
-<% if can_view_photos?(@user) %>
-  <h2>Photos</h2>
-  
-  <% @user.photos.order(created_at: :desc).each do |photo| %>
-    <div>
-      <img src="<%= photo.image %>" class="img-responsive">
-      <p><%= photo.caption %></p>
-      <p>
-        <%= time_ago_in_words(photo.created_at) %> ago
-        · <%= pluralize(photo.likes_count, "like") %>
-        · <%= pluralize(photo.comments_count, "comment") %>
-        · <%= link_to "Show details", photo_path(photo) %>
-      </p>
-    </div>
-  <% end %>
+<% if !@user.private? || current_user == @user || current_user&.following&.include?(@user) %>
+  <div class="photos">
+    <% @photos.each do |photo| %>
+      <div class="photo">
+        <img src="<%= photo.image %>" class="img-responsive">
+        <p><%= photo.caption %></p>
+        <p>
+          <%= time_ago_in_words(photo.created_at) %> ago
+          · <%= pluralize(photo.likes_count, "like") %>
+          · <%= pluralize(photo.comments_count, "comment") %>
+          · <%= link_to "Show details", photo_path(photo) %>
+        </p>
+      </div>
+    <% end %>
+  </div>
 <% else %>
   <p>This account is private. Follow to see their photos.</p>
 <% end %>

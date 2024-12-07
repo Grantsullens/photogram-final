@@ -14,11 +14,13 @@
       <td>
         <%= user.username %>
       </td>
+      
       <td>
         <%= user.private? ? "Yes" : "No" %>
       </td>
+      
       <td>
-        <% if user_signed_in? %>
+        <% if user_signed_in? && current_user != user %>
           <% existing_request = current_user.sent_follow_requests.find_by(recipient: user) %>
           <% if existing_request %>
             <% if existing_request.status == "accepted" %>
@@ -30,11 +32,14 @@
           <% else %>
             <%= form_with(url: "/insert_follow_request", method: :post, local: true) do |f| %>
               <%= f.hidden_field :query_recipient_id, value: user.id %>
+              <%= f.hidden_field :query_sender_id, value: current_user.id %>
+              <%= f.hidden_field :query_status, value: user.private? ? "pending" : "accepted" %>
               <button>Follow</button>
             <% end %>
           <% end %>
         <% end %>
       </td>
+      
       <td>
         <%= link_to "Show details", user_profile_path(username: user.username) %>
       </td>

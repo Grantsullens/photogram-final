@@ -13,6 +13,8 @@
 #
 class Photo < ApplicationRecord
   # Direct Associations
+   
+  mount_uploader :image, ImageUploader
 
   belongs_to :owner, 
              class_name: "User",
@@ -36,6 +38,5 @@ class Photo < ApplicationRecord
            source: :fan
 
   # Validations
-  # Add any needed validations here
+  validates :image, presence: true
 end
-

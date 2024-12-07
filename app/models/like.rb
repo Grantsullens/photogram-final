@@ -22,6 +22,5 @@ class Like < ApplicationRecord
              counter_cache: true # This will increment the photo's likes_count if present
 
   # Validations
-  # Add any needed validations (e.g. uniqueness of [fan_id, photo_id] pair)
+  validates :photo_id, uniqueness: { scope: :fan_id }
 end
-
