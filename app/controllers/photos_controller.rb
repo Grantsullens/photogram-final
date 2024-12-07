@@ -3,21 +3,13 @@ class PhotosController < ApplicationController
 
   def index
     matching_photos = Photo.all
-
-    # Filter out private photos unless the user is following the owner
-    @list_of_photos = matching_photos.select do |photo|
-      !photo.owner.private || 
-      (current_user && (current_user == photo.owner || current_user.following.include?(photo.owner)))
-    end
-
-    @list_of_photos = @list_of_photos.sort_by(&:created_at).reverse
-
+    @list_of_photos = matching_photos.order({ :created_at => :desc })
     render({ :template => "photos/index" })
   end
 
   def show
-    the_id = params.fetch("path_id")
-    @the_photo = Photo.find(the_id)
+    # Change from params.fetch("path_id") to params[:id]
+    @the_photo = Photo.find(params[:id])
     
     # Check if user can view this photo
     if @the_photo.owner.private && 
@@ -29,8 +21,6 @@ class PhotosController < ApplicationController
   end
 
   def create
-    return redirect_to photos_path, alert: "You must be signed in to post photos." unless current_user
-
     the_photo = Photo.new
     the_photo.caption = params.fetch("query_caption")
     the_photo.image = params.fetch("query_image")
@@ -47,13 +37,13 @@ class PhotosController < ApplicationController
   end
 
   def destroy
-    the_id = params.fetch("path_id")
-    the_photo = Photo.find(the_id)
+    # Also update this to use params[:id]
+    @the_photo = Photo.find(params[:id])
 
-    if current_user != the_photo.owner
+    if current_user != @the_photo.owner
       redirect_to photos_path, alert: "You can only delete your own photos."
     else
-      the_photo.destroy
+      @the_photo.destroy
       redirect_to photos_path, notice: "Photo deleted successfully."
     end
   end
